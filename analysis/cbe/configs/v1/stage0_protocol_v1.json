@@ -1,0 +1,73 @@
+{
+  "artifact_type": "stage0_protocol",
+  "bootstrap": {
+    "aggregation": "sequence_macro",
+    "confidence_level": 0.95,
+    "interval": "percentile_two_sided",
+    "resampling_unit": "sequence",
+    "samples": 10000,
+    "seed": 20260720
+  },
+  "identity": {
+    "bind_checkpoint_bytes": true,
+    "bind_dataset_image_and_annotation_bytes": true,
+    "bind_exact_model_yaml": true,
+    "bind_manifest_lock_raw_bytes": true,
+    "bind_protocol_bundle": true,
+    "bind_semantic_attribute_manifest_raw_bytes": true,
+    "bind_source_files": true,
+    "bind_split_manifest_raw_bytes": true
+  },
+  "inputs": {
+    "attribute_manifest_required_before_formal_preflight": true,
+    "attribute_manifest_schema": "semantic_attribute_manifest_with_bidirectional_membership_v1",
+    "authoritative_confirm62_manifest_required": true,
+    "authoritative_design83_manifest_required": true,
+    "authoritative_development187_manifest_required": true,
+    "authoritative_internal42_manifest_required": true,
+    "authoritative_val47_manifest_required": true,
+    "intervention_registry": "intervention_registry_v1.json",
+    "manifest_hash_lock_format": "lowercase_sha256_two_spaces_filename_sorted_ascii_lf",
+    "manifest_lock_expected_sha256_required_out_of_band": true,
+    "protocol_bundle_hash_algorithm": "sha256_canonical_json_filename_to_sha256_map",
+    "split_manifest_schema": "ordered_per_sequence_dataset_identity_v1",
+    "val47_source_policy": "separate_authoritative_manifest_disjoint_from_development187"
+  },
+  "objective": "diagnose_dense_stable_counterfactual_evidence_before_training",
+  "online_semantics": {
+    "clean_probes": ["fusion_factual", "rgb_retained_input_ablation_probe", "tir_retained_input_ablation_probe"],
+    "factual_track_is_only_state_advance": true,
+    "future_frame_access": false,
+    "label_firewall_recursive": true,
+    "probe_outputs_never_select_tracking_output": true,
+    "training": false
+  },
+  "phase_chain": ["preflight", "online", "intervene", "evaluate", "gate", "verify"],
+  "protocol_version": "v1",
+  "replay": {
+    "clean_arm": "strength_zero_references_single_factual_forward",
+    "counterfactual_state_policy": "read_only_fixed_template_fixed_anchor",
+    "intervention_timing": "full_resolution_before_normal_tracker_crop",
+    "primary_arms": ["opaque_region_a", "opaque_region_b"],
+    "randomness": "event_local_sha256_derived_only",
+    "three_strengths_same_frame": true
+  },
+  "schedule": {
+    "assignment": "sha256_canonical_json",
+    "assignment_seed": 20260720,
+    "frame_index_origin": 0,
+    "interval_frames": 20,
+    "invalid_backfill_forbidden": true,
+    "max_opportunities_per_sequence": 8,
+    "strengths_per_opportunity": [0.25, 0.5, 0.75],
+    "warmup_frames": 15
+  },
+  "scope_policy": {
+    "gate_accepts_only_official_scope": true,
+    "official_scope": "design83",
+    "sealed_scopes": ["internal42", "confirm62", "val47"],
+    "split_reassignment_forbidden": true
+  },
+  "schema_version": "cbe-stage0-diagnostic-v1",
+  "stop_rule": "gate_A_to_D_failure_STOP_CBE_integrity_failure_INVALID_RUN_all_pass_PASS_STAGE0"
+}

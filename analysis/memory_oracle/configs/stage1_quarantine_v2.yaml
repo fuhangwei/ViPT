@@ -1,0 +1,87 @@
+schema_version: rmg-stage1-v2-q5
+dataset: RGBT234
+schedule:
+  warmup: 30
+  interval: 30
+  cooldown: 60
+candidate_validity:
+  min_size: 8.0
+  min_intersection_ratio: 0.75
+  max_padding_ratio: 0.25
+triage:
+  immediate_max_entropy: 0.45
+  quarantine_max_entropy: 0.50
+quarantine:
+  slots: 1
+  probe_offsets: [1, 3, 5]
+  min_support: 2
+  support_iou_candidates: [0.50, 0.60, 0.70, 0.80, 0.90]
+split:
+  method: sha256_sequence_name
+  development_count: 187
+  outer:
+    tune_count: 125
+    confirm_count: 62
+  inner:
+    namespace: rmg-stage1-v2-q5-inner
+    design_count: 83
+    internal_count: 42
+exposure:
+  design83: adaptive_development
+  internal42: adaptive_development_one_shot
+  confirm62: outcome_blind_one_shot
+  confirm62_prior_access: gt_derived_features_integrity_only_no_outcomes
+  val47: locked_validation_one_shot
+arms:
+  - static
+  - periodic_pred
+  - confidence_e050
+  - rmg_q
+  - rmg_q_no_quarantine
+thresholds:
+  good_iou: 0.7
+  bad_iou: 0.1
+action_gate:
+  immediate_precision_min: 0.90
+  immediate_bad_rate_max: 0.02
+  immediate_coverage_min: 0.03
+  combined_coverage_min: 0.10
+  combined_bad_rate_max: 0.05
+  release_bad_rate_max: 0.05
+  combined_writes_min: 100
+  combined_sequences_min: 20
+  quarantine_incremental_auc_delta_exclusive_min: 0.0
+internal_action_gate:
+  combined_writes_min: 50
+  combined_sequences_min: 10
+stability:
+  bootstrap_seed: 20260716
+  bootstrap_samples: 2000
+  modal_match_fraction_min: 0.80
+  leave_one_group_out:
+    groups: 5
+    same_threshold_min: 4
+final_tracking_gate:
+  rmg_q_static_auc_delta_min: 0.005
+  rmg_q_periodic_auc_delta_min: 0.010
+  rmg_q_periodic_auc_ci_low_exclusive_min: 0.0
+  worsened_fraction_max: 0.20
+  clean_auc_delta_min: -0.002
+  clean_worsened_fraction_max: 0.10
+  clean_subset_nonempty: true
+  rmg_q_no_quarantine_auc_delta_exclusive_min: 0.0
+  rmg_q_confidence_e050_auc_delta_exclusive_min: 0.0
+metrics:
+  bootstrap_seed: 20260716
+  bootstrap_samples: 2000
+parent_artifacts:
+  stage0:
+    aggregate_sha256: 76a0b7f5e4701ce57086548f405cfdac979ad015bff3c7eda5f28ba187bff9dd
+    gate_sha256: bc2b339a8956fec47799be4c30c9bdfa52feddf214d0999fe7e2d647466ec0f6
+    manifest_content_hash: 9890d9fd0040024143172db0594684811bfb60a50da861bffdf193b48db194e3
+    gate_pass_required: true
+  stage1_v1:
+    tuning_failure_sha256: cc67615e1eb778cfafe57aa66901f8840ae685fa918a324b92c3489902e647a0
+    lock_must_be_absent: true
+    arms_must_be_absent: true
+    gate_must_be_absent: true

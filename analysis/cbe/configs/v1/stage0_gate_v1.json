@@ -1,0 +1,52 @@
+{
+  "artifact_type": "stage0_gate",
+  "decision_precedence": ["Gate_E_failure_yields_INVALID_RUN", "Gate_E_pass_and_any_A_to_D_failure_yields_STOP_CBE", "all_A_to_E_pass_yields_PASS_STAGE0"],
+  "failure_action": "STOP_CBE_before_training",
+  "gate_version": "v1",
+  "gates": {
+    "A": {
+      "direction_count": 8,
+      "direction_pass_condition": {
+        "faithfulness_sequence_macro_median": "greater_than_0",
+        "target_effect_bootstrap_95_percent_CI_low": "greater_than_or_equal_0",
+        "target_effect_sequence_macro_median": "greater_than_0"
+      },
+      "name": "target_evidence_faithfulness",
+      "pass_operator": "at_least",
+      "pass_value": 5,
+      "unit": "primary_direction"
+    },
+    "B": {
+      "all_of": [{"metric": "negative_event_sequence_coverage", "operator": "greater_than_or_equal", "value": 0.2}],
+      "any_of": [{"metric": "clean_negative_fusion_rate", "operator": "greater_than_or_equal", "value": 0.03}, {"metric": "degradation_negative_fusion_rate_increase", "operator": "greater_than_or_equal", "value": 0.05, "requires_executed_degradation_probe": true}],
+      "name": "negative_fusion_density"
+    },
+    "C": {
+      "direction_count": 8,
+      "direction_pass_condition": {"metric": "median_sequence_level_same_frame_strength_spearman_rho", "operator": "greater_than_or_equal", "value": 0.3},
+      "name": "strength_monotonicity",
+      "pass_operator": "at_least",
+      "pass_value": 4,
+      "unit": "primary_direction"
+    },
+    "D": {
+      "attribute_count": 5,
+      "attribute_pass_condition": "recomputed_Gates_A_B_C_core_signature_matches_full_data_signature",
+      "method": "leave_one_overlapping_attribute_group_out",
+      "name": "semantic_leave_one_group_out_stability",
+      "pass_operator": "at_least",
+      "pass_value": 4,
+      "semantic_attributes": ["day_night", "low_illumination", "occlusion", "fast_motion", "thermal_or_modality_challenge"]
+    },
+    "E": {
+      "all_of": [{"metric": "online_label_leakage_count", "operator": "equal", "value": 0}, {"metric": "non_finite_count", "operator": "equal", "value": 0}, {"metric": "schema_mismatch_count", "operator": "equal", "value": 0}, {"metric": "semantic_replay_pass_fraction", "operator": "equal", "value": 1.0}],
+      "name": "protocol_integrity"
+    }
+  },
+  "schema_version": "cbe-stage0-diagnostic-v1",
+  "scope_requirement": {
+    "reject_non_official_schema": true,
+    "reject_scopes": ["internal42", "confirm62", "val47"],
+    "scope": "design83"
+  }
+}

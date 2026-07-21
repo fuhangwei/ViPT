@@ -1,0 +1,68 @@
+{
+  "aggregate_summary": {
+    "aggregation": "sequence_macro",
+    "required_fields": ["identity_hash", "intervene_phase_content_hash", "direction_data", "density_data", "logo_results", "integrity", "raw_manifest_hash", "protocol_bundle_hash", "content_hash"]
+  },
+  "artifact_layers": {
+    "evaluated_event_metric": {
+      "contains_privileged_metrics": true,
+      "required_fields": ["sequence_name", "frame_index", "opportunity_index", "event_id", "direction", "clean_evidence", "clean_fusion", "strength_metrics"]
+    },
+    "evaluator_label": {
+      "allowed_only_after_online": true,
+      "required_fields": ["sequence_name", "frame_index", "opportunity_index", "event_id", "assignment_hash", "direction", "strengths", "status", "visible_gt_xywh", "tir_gt_xywh", "evaluation_gt_xywh", "target_region_id", "background_region_id"]
+    },
+    "intervention_raw": {
+      "forbidden_fields": ["gt", "ground_truth", "iou", "target_region_role", "background_region_role", "mask_coordinates", "mask_pixel_count", "background_offset_yx"],
+      "required_fields": ["sequence_name", "frame_index", "opportunity_index", "event_id", "assignment_hash", "direction", "strengths", "source_frame", "search_anchor_xywh", "factual_template_id", "status", "strength_arms"],
+      "region_semantics": "opaque_region_ids_only"
+    },
+    "online_raw": {
+      "forbidden_recursive": ["gt", "ground_truth", "iou", "annotation", "mask", "coordinates", "future_labels"],
+      "required_fields": ["sequence_name", "frame_index", "opportunity_index", "event_id", "assignment_hash", "direction", "strengths", "search_anchor_xywh", "factual_template_id", "probes"]
+    }
+  },
+  "artifact_type": "stage0_metric_schema",
+  "calibration": {
+    "aurc": "mean_empirical_risk_over_descending_confidence_coverage",
+    "brier": "sum_squared_error_against_fractional_GT_overlap_normalized_to_target_distribution",
+    "confidence_iou_spearman": "descriptive_only",
+    "gt_region_nll": "negative_log_of_sum_induced_belief_times_fractional_GT_overlap",
+    "quality_ece": "10_equal_width_confidence_bins_against_decoded_box_iou",
+    "temperature_fitting_forbidden": true
+  },
+  "effect_definitions": {
+    "background_effect": "factual_induced_belief_GT_mass_minus_background_intervention_induced_belief_GT_mass",
+    "faithfulness": "target_effect_minus_background_effect",
+    "fusion_regret": "max_rgb_retained_probe_iou_tir_retained_probe_iou_minus_factual_fusion_iou",
+    "negative_fusion_event": "fusion_regret_greater_than_or_equal_0_10",
+    "severe_negative_fusion_event": "max_probe_iou_greater_than_or_equal_0_60_and_factual_fusion_iou_less_than_0_40",
+    "target_effect": "factual_induced_belief_GT_mass_minus_target_intervention_induced_belief_GT_mass"
+  },
+  "evidence_layers": {
+    "induced_diagnostic_belief": {
+      "formula": "softmax(raw_score_map_over_temperature)",
+      "metrics": ["GT_mass", "GT_peak", "entropy", "normalized_entropy"],
+      "not_a_native_posterior": true,
+      "temperature": 1.0
+    },
+    "raw_score_evidence": {
+      "formula": "fused_center_head_sigmoid_score_map",
+      "metrics": ["GT_mean", "GT_weighted_sum", "GT_mass_share", "GT_contrast"]
+    },
+    "windowed_tracking_response": {
+      "formula": "Hann_times_raw_score_map",
+      "metrics": ["GT_weighted_sum", "GT_mass_share", "GT_peak", "decoded_box"]
+    }
+  },
+  "exact_keys": true,
+  "invalid_opportunity_policy": {
+    "excluded_from_H2_H3": true,
+    "included_in_clean_H1_denominator": true,
+    "no_backfill": true,
+    "reasons": ["registration_discordant", "target_mask_invalid", "matched_background_unavailable"]
+  },
+  "metric_schema_version": "v1",
+  "schema_version": "cbe-stage0-diagnostic-v1",
+  "semantic_attributes": ["day_night", "low_illumination", "occlusion", "fast_motion", "thermal_or_modality_challenge"]
+}

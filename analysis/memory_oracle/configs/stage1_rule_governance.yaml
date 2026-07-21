@@ -1,0 +1,43 @@
+schema_version: rmg-stage1-v1
+dataset: RGBT234
+split: development_or_validation
+schedule:
+  warmup: 30
+  interval: 30
+  cooldown: 60
+arms:
+  - static
+  - periodic_pred
+  - rule_rmg
+  - pred_good
+  - gt_good
+thresholds:
+  pred_good_iou: 0.7
+candidate_validity:
+  min_size: 8.0
+  min_intersection_ratio: 0.75
+  max_padding_ratio: 0.25
+tuning:
+  split_method: sha256_sequence_name
+  tune_fraction: 0.6684491978609626
+  entropy_candidates: [0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.00]
+  motion_candidates: [0.05, 0.10, 0.15, 0.20, 0.30, 0.40, 0.50, 0.75, 1.00, 1.50, 2.00]
+  min_precision: 0.7
+  max_bad_update_rate: 0.05
+  min_commits: 100
+  min_sequences_with_commits: 20
+  min_commit_coverage: 0.10
+  good_iou: 0.7
+  bad_iou: 0.1
+metrics:
+  bootstrap_seed: 20260715
+  bootstrap_samples: 2000
+gate:
+  rule_static_auc_delta_min: 0.005
+  rule_periodic_auc_delta_min: 0.010
+  rule_periodic_auc_delta_ci_low_exclusive_min: 0.0
+  bad_update_rate_max: 0.05
+  worsened_sequence_fraction_max: 0.20
+  clean_auc_delta_mean_min: -0.002
+  clean_worsened_sequence_fraction_max: 0.10
+  commit_coverage_min: 0.10

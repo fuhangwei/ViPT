@@ -1,0 +1,19 @@
+{
+  "total_omission_cases": 958,
+  "selected_cases": 60,
+  "selected_sequences": 20,
+  "source_counts": {
+    "rgb": 23,
+    "tir": 37
+  },
+  "state_counts": {
+    "both_agree": 11,
+    "rgb_only": 17,
+    "tir_only": 32
+  },
+  "outputs": [
+    "top_omission_cases.csv",
+    "top_omission_cases.json",
+    "top_omission_contact_sheet.jpg"
+  ]
+}

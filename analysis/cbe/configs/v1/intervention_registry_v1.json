@@ -1,0 +1,108 @@
+{
+  "artifact_type": "intervention_registry",
+  "diagnostic_controls": {
+    "background_replacement": {
+      "fallback": "invalid_no_replacement",
+      "operator": "same_sequence_past_background_preserve_current_target",
+      "source_offsets": [1, 2]
+    },
+    "global_suppression": {
+      "implementations": ["mean_image", "low_frequency_blur", "dataset_statistic_noise"],
+      "modalities": ["rgb", "tir"],
+      "zero_is_stress_only": true
+    },
+    "temporal": {
+      "fallback": "invalid_insufficient_history",
+      "offsets": [1, 2],
+      "operator": "replace_one_modality_from_same_sequence_past_frame",
+      "past_only": true
+    },
+    "translation": {
+      "directions": ["left", "right", "up", "down", "up_left", "up_right", "down_left", "down_right"],
+      "magnitudes_fraction_of_search_size": [0.02, 0.05, 0.1],
+      "neutral_padding": [124, 116, 104]
+    }
+  },
+  "frozen": true,
+  "numeric_policy": {
+    "input_dtype": "uint8",
+    "input_range": [0, 255],
+    "intermediate_dtype": "float64",
+    "neutral_rgb": [124, 116, 104],
+    "neutral_tir": [124, 116, 104],
+    "noise_prng": "numpy_default_rng_seeded_by_sha256_first_64_bits",
+    "output_dtype": "uint8",
+    "rounding": "numpy_rint_ties_to_even_then_clip"
+  },
+  "primary_directions": [
+    {
+      "direction": "rgb_blur",
+      "modality": "rgb",
+      "operator": "gaussian_blur_reflect101",
+      "parameter": "sigma_pixels",
+      "values_by_strength": {"0.25": 1.5, "0.5": 2.5, "0.75": 3.5}
+    },
+    {
+      "direction": "rgb_low_light",
+      "modality": "rgb",
+      "operator": "linear_intensity_scale_about_zero",
+      "parameter": "gain",
+      "values_by_strength": {"0.25": 0.75, "0.5": 0.5, "0.75": 0.25}
+    },
+    {
+      "direction": "rgb_desaturation",
+      "modality": "rgb",
+      "operator": "rgb_luminance_interpolation",
+      "parameter": "retained_color_fraction",
+      "values_by_strength": {"0.25": 0.75, "0.5": 0.5, "0.75": 0.25}
+    },
+    {
+      "direction": "rgb_occlusion",
+      "modality": "rgb",
+      "operator": "deterministic_paired_subset_opaque_occlusion",
+      "parameter": "mask_area_fraction",
+      "values_by_strength": {"0.25": 0.25, "0.5": 0.5, "0.75": 0.75}
+    },
+    {
+      "direction": "tir_contrast_compression",
+      "modality": "tir",
+      "operator": "linear_contrast_about_127_5",
+      "parameter": "gain",
+      "values_by_strength": {"0.25": 0.75, "0.5": 0.5, "0.75": 0.25}
+    },
+    {
+      "direction": "tir_saturation",
+      "modality": "tir",
+      "operator": "linear_contrast_expansion_about_127_5_then_uint8_clip",
+      "parameter": "gain",
+      "values_by_strength": {"0.25": 1.75, "0.5": 2.5, "0.75": 3.25}
+    },
+    {
+      "direction": "tir_sensor_noise",
+      "modality": "tir",
+      "operator": "paired_coordinate_deterministic_gaussian_noise",
+      "parameter": "sigma_pixels",
+      "values_by_strength": {"0.25": 5.1, "0.5": 10.2, "0.75": 15.3}
+    },
+    {
+      "direction": "tir_blur",
+      "modality": "tir",
+      "operator": "gaussian_blur_reflect101",
+      "parameter": "sigma_pixels",
+      "values_by_strength": {"0.25": 1.5, "0.5": 2.5, "0.75": 3.5}
+    }
+  ],
+  "region_policy": {
+    "annotation_registration_iou_minimum": 0.5,
+    "background_minimum_clearance_fraction": 0.0,
+    "background_placement": "sha256_ranked_complete_integer_translation_inside_nonpadding_search_support",
+    "invalid_reasons": ["registration_discordant", "target_mask_invalid", "matched_background_unavailable"],
+    "minimum_target_pixels": 16,
+    "target_expansion": 1.25,
+    "target_expansion_units": "bbox_scale_about_center",
+    "target_minimum_clip_retention": 0.9
+  },
+  "registry_version": "v1",
+  "schema_version": "cbe-stage0-diagnostic-v1",
+  "strengths": [0.25, 0.5, 0.75]
+}

@@ -1,0 +1,26 @@
+schema_version: rmg-stage0-v1
+dataset: RGBT234
+split: val47
+schedule:
+  warmup: 30
+  interval: 30
+  horizons: [5, 15, 30, 60]
+  cooldown: 60
+thresholds:
+  pred_good_iou: 0.7
+  bad_iou: 0.1
+candidate_validity:
+  min_size: 8.0
+  min_intersection_ratio: 0.75
+  max_padding_ratio: 0.25
+metrics:
+  success_threshold_count: 21
+  bootstrap_seed: 20260317
+  bootstrap_samples: 2000
+gate:
+  bad_gate_source: bad_deterministic
+  gt_good_auc_delta_min: 0.005
+  bad_closed_h60_auc_delta_max: -0.005
+  bad_closed_loop_negative_horizons: [15, 30, 60]
+  bad_event_count_min: 100
+  bad_sequence_coverage_min: 10

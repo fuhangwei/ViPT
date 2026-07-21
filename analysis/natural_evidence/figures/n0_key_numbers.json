@@ -1,0 +1,12 @@
+{
+  "frames": 21417,
+  "fusion_recall20_iou05": 0.8630060232525564,
+  "union_recall20_iou05": 0.8981183172246346,
+  "union_gain_iou05": 0.03511229397207827,
+  "oracle_gap_auc": 0.1054569467512454,
+  "recoverable_failure_rate": 0.0995003968809824,
+  "omission_rows": 958,
+  "sequences_with_omission": 35,
+  "unique_fusion_miss": 569,
+  "figure_dir": "analysis/natural_evidence/runs/n0_rgbt234_val47/figures"
+}

@@ -1,0 +1,11 @@
+seq,start,end,label,notes
+walkingnight,405,416,A-,low_light_blur; TIR usable but blurry
+walkingnight,198,203,A-,low_light_blur; TIR usable
+walkingnight,296,353,A-,long low_light_blur segment; TIR usable
+walkingnight,365,371,A-,low_light_blur; TIR usable
+walkingnight,381,388,A-,low_light_blur; TIR usable
+walkingnight,288,293,A-,low_light_blur; TIR usable
+walkingman1,279,285,A,motion_blur; TIR usable
+walkingman1,195,247,A,motion_blur; TIR usable
+walkingman1,133,181,A,motion_blur; TIR usable
+walkingman1,64,87,A,motion_blur; TIR usable
