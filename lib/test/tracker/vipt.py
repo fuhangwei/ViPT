@@ -2,13 +2,10 @@ import numpy as np
 from lib.models.vipt import build_viptrack
 from lib.test.tracker.basetracker import BaseTracker
 import torch
-from lib.test.tracker.vis_utils import gen_visualization
 from lib.test.utils.hann import hann2d
 from lib.train.data.processing_utils import sample_target
 # for debug
 import cv2
-import os
-import vot
 from lib.test.tracker.data_utils import PreprocessorMM
 from lib.utils.box_ops import clip_box
 from lib.utils.ce_utils import generate_mask_cond

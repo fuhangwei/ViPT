@@ -4,7 +4,6 @@ import torch
 from _collections import OrderedDict
 
 from lib.train.data.processing_utils import transform_image_to_crop
-from lib.vis.visdom_cus import Visdom
 
 
 class BaseTracker:
@@ -63,6 +62,8 @@ class BaseTracker:
         self.next_seq = False
         if debug > 0 and visdom_info.get('use_visdom', True):
             try:
+                from lib.vis.visdom_cus import Visdom
+
                 self.visdom = Visdom(debug, {'handler': self._visdom_ui_handler, 'win_id': 'Tracking'},
                                      visdom_info=visdom_info)
             except:
