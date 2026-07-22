@@ -1,4 +1,8 @@
-import jpeg4py
+try:
+    import jpeg4py
+except ImportError:
+    jpeg4py = None
+
 import cv2 as cv
 from PIL import Image
 import numpy as np
@@ -33,6 +37,8 @@ default_image_loader.use_jpeg4py = None
 
 def jpeg4py_loader(path):
     """ Image reading using jpeg4py https://github.com/ajkxyz/jpeg4py"""
+    if jpeg4py is None:
+        return None
     try:
         return jpeg4py.JPEG(path).decode()
     except Exception as e:
@@ -56,6 +62,8 @@ def opencv_loader(path):
 
 def jpeg4py_loader_w_failsafe(path):
     """ Image reading using jpeg4py https://github.com/ajkxyz/jpeg4py"""
+    if jpeg4py is None:
+        return opencv_loader(path)
     try:
         return jpeg4py.JPEG(path).decode()
     except:
