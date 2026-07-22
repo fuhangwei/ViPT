@@ -15,12 +15,12 @@ __pycache__/
 *.pem
 *.key
 
-models/
-output/
-pretrained/
-tensorboard/
-data/
-checkpoints/
+/models/
+/output/
+/pretrained/
+/tensorboard/
+/data/
+/checkpoints/
 *.pth
 *.pth.tar
 *.pt
