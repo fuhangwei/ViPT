@@ -628,6 +628,24 @@ def _validate_prediction(value: Any, feature_size: int, path: str) -> None:
         _sha256(summary["sha256"], f"{path}.{name}.sha256")
 
 
+def _factual_matches_trajectory(
+    factual: Mapping[str, Any], trajectory: Mapping[str, Any],
+) -> bool:
+    try:
+        return bool(
+            np.allclose(
+                factual["target_bbox"], trajectory["pred_xywh"],
+                rtol=0.0, atol=1e-5,
+            )
+            and np.isclose(
+                factual["best_score"], trajectory["best_score"],
+                rtol=0.0, atol=1e-6,
+            )
+        )
+    except (KeyError, TypeError, ValueError):
+        return False
+
+
 def validate_sequence_transcript(value: Mapping[str, Any]) -> None:
     expected = {
         "artifact_type", "dataset_entry_hash", "design83_ordinal", "feature_size",
@@ -712,13 +730,11 @@ def validate_sequence_transcript(value: Mapping[str, Any]) -> None:
             raise DryRunValidationError("opportunity differs from locked schedule or invariant")
         smoke._bbox(row["search_anchor_xywh"], "opportunity.search_anchor_xywh")
         trajectory_row = value["trajectory"][row["frame_index"]]
+        factual = row["probes"].get("factual", {})
         if (
             row["search_anchor_xywh"] != trajectory_row["search_anchor_xywh"]
             or row["factual_template_id"] != trajectory_row["template_id"]
-            or row["probes"].get("factual", {}).get("target_bbox")
-            != trajectory_row["pred_xywh"]
-            or row["probes"].get("factual", {}).get("best_score")
-            != trajectory_row["best_score"]
+            or not _factual_matches_trajectory(factual, trajectory_row)
         ):
             raise DryRunValidationError("opportunity differs from same-frame factual trajectory")
         if not isinstance(row["factual_template_id"], str) or not row["factual_template_id"]:

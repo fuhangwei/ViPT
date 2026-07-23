@@ -157,6 +157,21 @@ class Design83GpuDryRunNonOfficialTest(unittest.TestCase):
             with self.assertRaisesRegex(dryrun.DryRunValidationError, "completed design83 preflight"):
                 dryrun._validate_preflight_binding(Path("/formal"), "1" * 64, "2" * 64)
 
+    def test_factual_trajectory_uses_tracker_equivalence_tolerances(self):
+        trajectory = {"pred_xywh": [1.0, 2.0, 3.0, 4.0], "best_score": 0.5}
+        self.assertTrue(dryrun._factual_matches_trajectory(
+            {"target_bbox": [1.0 + 9e-6, 2.0, 3.0, 4.0], "best_score": 0.5 + 9e-7},
+            trajectory,
+        ))
+        self.assertFalse(dryrun._factual_matches_trajectory(
+            {"target_bbox": [1.0 + 2e-5, 2.0, 3.0, 4.0], "best_score": 0.5},
+            trajectory,
+        ))
+        self.assertFalse(dryrun._factual_matches_trajectory(
+            {"target_bbox": [1.0, 2.0, 3.0, 4.0], "best_score": 0.5 + 2e-6},
+            trajectory,
+        ))
+
     def test_sequence_transcript_remains_nonofficial_and_label_free(self):
         transcript = self._sequence_transcript()
         dryrun.validate_sequence_transcript(transcript)
