@@ -159,6 +159,8 @@ def _require_runtime() -> None:
 
 
 def _jsonable(value: Any) -> Any:
+    if hasattr(value, "detach"):
+        return value.detach().cpu().tolist()
     if isinstance(value, np.ndarray):
         return value.tolist()
     if isinstance(value, np.generic):

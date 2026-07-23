@@ -76,6 +76,79 @@ from analysis.cbe.run_stage0_diagnostic_v1 import (
 from analysis.cbe.semantic_replay_v1 import DEFAULT_FIXTURE, replay_fixture
 
 
+class TensorLike:
+    def __init__(self, value):
+        self.value = value
+
+    def detach(self):
+        return self
+
+    def cpu(self):
+        return self
+
+    def tolist(self):
+        return self.value
+
+
+class ForwardPayloadSerializationTest(unittest.TestCase):
+    def _forward(self):
+        return {
+            "score_map": TensorLike([[4.0, 1.0], [1.0, 1.0]]),
+            "size_map": TensorLike([
+                [[0.5, 0.5], [0.5, 0.5]],
+                [[0.5, 0.5], [0.5, 0.5]],
+            ]),
+            "offset_map": TensorLike([
+                [[0.0, 0.0], [0.0, 0.0]],
+                [[0.0, 0.0], [0.0, 0.0]],
+            ]),
+            "hann_response": TensorLike([[4.0, 1.0], [1.0, 1.0]]),
+            "resize_factor": 1.0,
+            "search_crop_xywh": [0.0, 0.0, 2.0, 2.0],
+            "target_bbox": [0.0, 0.0, 1.0, 1.0],
+            "best_score": 0.9,
+            "search_anchor": [0.0, 0.0, 1.0, 1.0],
+            "anchor_id": "anchor-0",
+            "template_id": "template-0",
+        }
+
+    def _opportunity(self, payload):
+        return {
+            "schema_version": stage0_runner.SCHEMA_VERSION,
+            "scope": stage0_runner.OFFICIAL_SCOPE,
+            "record_type": "opportunity",
+            "sequence_name": "sequence-0",
+            "frame_index": 1,
+            "opportunity_index": 0,
+            "event_id": "event-0",
+            "assignment_hash": "0" * 64,
+            "direction": "visible_to_thermal",
+            "strengths": [0.25, 0.5, 0.75],
+            "search_anchor_xywh": [0.0, 0.0, 1.0, 1.0],
+            "factual_template_id": "template-0",
+            "probes": {
+                "factual": payload,
+                "rgb_retained": payload,
+                "tir_retained": payload,
+            },
+        }
+
+    def test_tensor_payload_is_jsonable_and_valid_online_schema(self):
+        payload = stage0_runner._forward_payload(
+            self._forward(), 2, TensorLike([[1.0, 1.0], [1.0, 1.0]])
+        )
+        self.assertEqual(payload["hann_window"], [[1.0, 1.0], [1.0, 1.0]])
+        self.assertIsInstance(payload["score_map"], list)
+        stage0_runner._validate_online_rows([self._opportunity(payload)])
+
+    def test_non_finite_tensor_payload_is_rejected(self):
+        payload = stage0_runner._forward_payload(
+            self._forward(), 2, TensorLike([[1.0, math.nan], [1.0, 1.0]])
+        )
+        with self.assertRaisesRegex(ProtocolValidationError, "non-finite"):
+            stage0_runner._validate_online_rows([self._opportunity(payload)])
+
+
 class ProtocolReplayTest(unittest.TestCase):
     def test_canonical_json_and_strict_parser(self):
         self.assertEqual(
