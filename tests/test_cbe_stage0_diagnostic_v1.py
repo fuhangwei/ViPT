@@ -149,6 +149,56 @@ class ForwardPayloadSerializationTest(unittest.TestCase):
             stage0_runner._validate_online_rows([self._opportunity(payload)])
 
 
+class ForwardContextValidationTest(unittest.TestCase):
+    def _payload(self, template_id):
+        return {
+            "search_anchor": [1.0, 2.0, 3.0, 4.0],
+            "anchor_id": "anchor-0",
+            "search_crop_xywh": [0.0, 0.0, 16.0, 16.0],
+            "resize_factor": 1.0,
+            "template_id": template_id,
+            "search_size": 256,
+        }
+
+    def _records(self):
+        factual = self._payload("factual:0")
+        online = {
+            "event_id": "event-0",
+            "search_anchor_xywh": list(factual["search_anchor"]),
+            "factual_template_id": factual["template_id"],
+            "probes": {
+                "factual": factual,
+                "rgb_retained": self._payload("rgb_retained:0"),
+                "tir_retained": self._payload("tir_retained:0"),
+            },
+        }
+        raw = {
+            "strength_arms": [{
+                "regions": {
+                    "target": self._payload("factual:0"),
+                    "background": self._payload("factual:0"),
+                },
+            }],
+        }
+        return online, raw
+
+    def test_clean_probes_keep_distinct_frozen_templates(self):
+        online, raw = self._records()
+        stage0_runner._validate_forward_context(online, raw)
+
+    def test_clean_probe_spatial_context_drift_is_rejected(self):
+        online, raw = self._records()
+        online["probes"]["rgb_retained"]["search_size"] = 128
+        with self.assertRaisesRegex(Stage0RunError, "clean probe context mismatch"):
+            stage0_runner._validate_forward_context(online, raw)
+
+    def test_counterfactual_template_drift_is_rejected(self):
+        online, raw = self._records()
+        raw["strength_arms"][0]["regions"]["target"]["template_id"] = "target:0"
+        with self.assertRaisesRegex(Stage0RunError, "counterfactual context mismatch"):
+            stage0_runner._validate_forward_context(online, raw)
+
+
 class ProtocolReplayTest(unittest.TestCase):
     def test_canonical_json_and_strict_parser(self):
         self.assertEqual(

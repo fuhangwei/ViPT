@@ -1563,15 +1563,15 @@ def _spatial(value: Any) -> np.ndarray:
 def _validate_forward_context(online: Mapping[str, Any], raw: Mapping[str, Any]) -> None:
     probes = online["probes"]
     factual = probes["factual"]
-    context_fields = (
+    shared_context_fields = (
         "search_anchor", "anchor_id", "search_crop_xywh", "resize_factor",
-        "template_id", "search_size",
+        "search_size",
     )
     if (factual["search_anchor"] != online["search_anchor_xywh"]
             or factual["template_id"] != online["factual_template_id"]):
         raise Stage0RunError(f"factual forward context mismatch: {online['event_id']}")
     for probe_name, payload in probes.items():
-        for field in context_fields:
+        for field in shared_context_fields:
             if payload[field] != factual[field]:
                 raise Stage0RunError(
                     f"clean probe context mismatch for {online['event_id']}: "
@@ -1579,7 +1579,7 @@ def _validate_forward_context(online: Mapping[str, Any], raw: Mapping[str, Any])
                 )
     for arm in raw["strength_arms"]:
         for region_id, payload in arm["regions"].items():
-            for field in context_fields:
+            for field in (*shared_context_fields, "template_id"):
                 if payload[field] != factual[field]:
                     raise Stage0RunError(
                         f"counterfactual context mismatch for {online['event_id']}: "
