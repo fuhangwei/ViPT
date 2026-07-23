@@ -36,7 +36,7 @@
       "name": "semantic_leave_one_group_out_stability",
       "pass_operator": "at_least",
       "pass_value": 4,
-      "semantic_attributes": ["day_night", "low_illumination", "occlusion", "fast_motion", "thermal_or_modality_challenge"]
+      "semantic_attributes": ["camera_motion", "low_illumination", "occlusion", "fast_motion", "thermal_or_modality_challenge"]
     },
     "E": {
       "all_of": [{"metric": "online_label_leakage_count", "operator": "equal", "value": 0}, {"metric": "non_finite_count", "operator": "equal", "value": 0}, {"metric": "schema_mismatch_count", "operator": "equal", "value": 0}, {"metric": "semantic_replay_pass_fraction", "operator": "equal", "value": 1.0}],

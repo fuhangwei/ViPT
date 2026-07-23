@@ -55,7 +55,7 @@
   ],
   "sequence": {
     "num_frames": 180,
-    "semantic_attributes": {"day_night": true, "fast_motion": false, "low_illumination": true, "occlusion": true, "thermal_or_modality_challenge": false},
+    "semantic_attributes": {"camera_motion": true, "fast_motion": false, "low_illumination": true, "occlusion": true, "thermal_or_modality_challenge": false},
     "sequence_name": "synthetic_semantic_sequence_01"
   }
 }

@@ -64,5 +64,5 @@
   },
   "metric_schema_version": "v1",
   "schema_version": "cbe-stage0-diagnostic-v1",
-  "semantic_attributes": ["day_night", "low_illumination", "occlusion", "fast_motion", "thermal_or_modality_challenge"]
+  "semantic_attributes": ["camera_motion", "low_illumination", "occlusion", "fast_motion", "thermal_or_modality_challenge"]
 }

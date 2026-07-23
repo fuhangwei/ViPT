@@ -129,10 +129,38 @@ class ProtocolReplayTest(unittest.TestCase):
 
     def test_frozen_bundle_cross_file_validation(self):
         registry, protocol, metric_schema, gate = _validated_protocol_bundle(DEFAULT_PROTOCOL_DIR)
+        expected_attributes = (
+            "camera_motion", "low_illumination", "occlusion", "fast_motion",
+            "thermal_or_modality_challenge",
+        )
+        self.assertEqual(SEMANTIC_ATTRIBUTES, expected_attributes)
+        self.assertEqual(stage0_runner.SEMANTIC_ATTRIBUTES, expected_attributes)
         self.assertEqual(registry["strengths"], [0.25, 0.5, 0.75])
         self.assertEqual(protocol["phase_chain"], ["preflight", "online", "intervene", "evaluate", "gate", "verify"])
-        self.assertEqual(metric_schema["semantic_attributes"], list(SEMANTIC_ATTRIBUTES))
-        self.assertEqual(gate["gates"]["D"]["semantic_attributes"], list(SEMANTIC_ATTRIBUTES))
+        self.assertEqual(metric_schema["semantic_attributes"], list(expected_attributes))
+        self.assertEqual(gate["gates"]["D"]["semantic_attributes"], list(expected_attributes))
+        fixture = json.loads(Path(DEFAULT_FIXTURE).read_text(encoding="utf-8"))
+        self.assertEqual(
+            tuple(fixture["sequence"]["semantic_attributes"]),
+            tuple(sorted(expected_attributes)),
+        )
+        self.assertNotIn("day_night", json.dumps({
+            "metric_schema": metric_schema,
+            "gate": gate,
+            "fixture": fixture,
+        }))
+
+    def test_frozen_bundle_rejects_old_semantic_taxonomy(self):
+        with tempfile.TemporaryDirectory() as directory:
+            protocol_dir = Path(directory)
+            for source in DEFAULT_PROTOCOL_DIR.glob("*.json"):
+                (protocol_dir / source.name).write_bytes(source.read_bytes())
+            metric_path = protocol_dir / "stage0_metric_schema_v1.json"
+            metric_schema = json.loads(metric_path.read_text(encoding="utf-8"))
+            metric_schema["semantic_attributes"][0] = "day_night"
+            metric_path.write_text(json.dumps(metric_schema), encoding="utf-8")
+            with self.assertRaisesRegex(Stage0RunError, "semantic attributes differ from taxonomy"):
+                _validated_protocol_bundle(protocol_dir)
 
     def test_frozen_bundle_rejects_intervention_parameter_drift(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -1050,8 +1078,10 @@ class SixPhaseIntegrationTest(unittest.TestCase):
                 attribute_manifest=str(attribute_path),
                 attribute_manifest_lock=str(attribute_lock_path),
                 attribute_manifest_lock_sha256=sha256_file(attribute_lock_path),
-                checkpoint=str(checkpoint_path),
-                model_config=str(model_config_path), protocol_dir=str(DEFAULT_PROTOCOL_DIR),
+                checkpoint=str(checkpoint_path), checkpoint_sha256=sha256_file(checkpoint_path),
+                model_config=str(model_config_path),
+                model_config_sha256=sha256_file(model_config_path),
+                protocol_dir=str(DEFAULT_PROTOCOL_DIR),
                 parameter_module="lib.test.parameter.vipt",
                 tracker_module="lib.test.tracker.vipt_stage0",
                 adapter_module="analysis.cbe.tracker_probe_v1",
@@ -1099,6 +1129,18 @@ class SixPhaseIntegrationTest(unittest.TestCase):
                 ),
             )
             with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5]:
+                bad_checkpoint_args = argparse.Namespace(**vars(preflight_args))
+                bad_checkpoint_args.checkpoint_sha256 = "0" * 64
+                with self.assertRaisesRegex(Stage0RunError, "checkpoint differs"):
+                    run_preflight(bad_checkpoint_args)
+                self.assertFalse((root / "run_identity.json").exists())
+
+                bad_config_args = argparse.Namespace(**vars(preflight_args))
+                bad_config_args.model_config_sha256 = "not-a-sha256"
+                with self.assertRaisesRegex(Stage0RunError, "externally frozen lowercase"):
+                    run_preflight(bad_config_args)
+                self.assertFalse((root / "run_identity.json").exists())
+
                 phases = [
                     run_preflight(preflight_args),
                     run_online(online_args),

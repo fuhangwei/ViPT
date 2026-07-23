@@ -24,7 +24,7 @@ PRIMARY_DIRECTIONS = (
     "tir_blur",
 )
 SEMANTIC_ATTRIBUTES = (
-    "day_night",
+    "camera_motion",
     "low_illumination",
     "occlusion",
     "fast_motion",

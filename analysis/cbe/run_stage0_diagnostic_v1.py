@@ -119,7 +119,7 @@ PRIMARY_DIRECTIONS = (
     "tir_contrast_compression", "tir_saturation", "tir_sensor_noise", "tir_blur",
 )
 SEMANTIC_ATTRIBUTES = (
-    "day_night", "low_illumination", "occlusion", "fast_motion",
+    "camera_motion", "low_illumination", "occlusion", "fast_motion",
     "thermal_or_modality_challenge",
 )
 DIRECTION_SPEC = {
@@ -826,7 +826,17 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
         args.attribute_manifest_lock_sha256, "attribute manifest lock SHA-256"
     )
     checkpoint = _regular_file(args.checkpoint, "checkpoint")
+    expected_checkpoint_sha256 = _expected_sha256(
+        args.checkpoint_sha256, "checkpoint SHA-256"
+    )
+    if sha256_file(checkpoint) != expected_checkpoint_sha256:
+        raise Stage0RunError("checkpoint differs from externally frozen SHA-256")
     model_config = _regular_file(args.model_config, "model config")
+    expected_model_config_sha256 = _expected_sha256(
+        args.model_config_sha256, "model config SHA-256"
+    )
+    if sha256_file(model_config) != expected_model_config_sha256:
+        raise Stage0RunError("model config differs from externally frozen SHA-256")
     output = Path(args.output_dir).resolve()
     output.mkdir(parents=True, exist_ok=True)
     if output.is_symlink():
@@ -900,8 +910,8 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
                 "path": str(attribute_lock_path), "sha256": attribute_lock.sha256,
                 "entries": attribute_lock.as_dict(),
             },
-            "checkpoint": {"path": str(checkpoint), "sha256": sha256_file(checkpoint)},
-            "model_config": {"path": str(model_config), "sha256": sha256_file(model_config)},
+            "checkpoint": {"path": str(checkpoint), "sha256": expected_checkpoint_sha256},
+            "model_config": {"path": str(model_config), "sha256": expected_model_config_sha256},
             "protocol_dir": str(protocol_dir),
             "protocol_files": protocol_bundle_manifest(protocol_paths),
             "protocol_bundle_hash": protocol_bundle_hash(protocol_paths),
@@ -2293,7 +2303,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--attribute-manifest-lock")
     parser.add_argument("--attribute-manifest-lock-sha256")
     parser.add_argument("--checkpoint")
+    parser.add_argument("--checkpoint-sha256")
     parser.add_argument("--model-config")
+    parser.add_argument("--model-config-sha256")
     parser.add_argument("--protocol-dir", default=str(DEFAULT_PROTOCOL_DIR))
     parser.add_argument("--parameter-module", default="lib.test.parameter.vipt")
     parser.add_argument("--tracker-module", default="lib.test.tracker.vipt_stage0")
@@ -2308,8 +2320,8 @@ def _validate_phase_args(parser: argparse.ArgumentParser, args: argparse.Namespa
         "dataset_root", "dataset", "split_manifest", "development_manifest",
         "internal_manifest", "confirm_manifest", "val_manifest", "split_manifest_lock",
         "split_manifest_lock_sha256", "attribute_manifest", "attribute_manifest_lock",
-        "attribute_manifest_lock_sha256", "checkpoint", "model_config",
-        "protocol_dir",
+        "attribute_manifest_lock_sha256", "checkpoint", "checkpoint_sha256",
+        "model_config", "model_config_sha256", "protocol_dir",
     )
     if args.phase == "preflight":
         missing = [name for name in preflight if not getattr(args, name)]
