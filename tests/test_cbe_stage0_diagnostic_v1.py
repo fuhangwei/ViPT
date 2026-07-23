@@ -483,6 +483,31 @@ class DatasetAndIntegrityTest(unittest.TestCase):
         self.assertTrue(cv2.imwrite(str(path), image))
 
     @unittest.skipUnless(HAS_OPENCV, "OpenCV is required for dataset decoding")
+    def test_dataset_loader_accepts_only_trailing_blank_annotation_rows(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            sequence = root / "seq"
+            (sequence / "visible").mkdir(parents=True)
+            (sequence / "infrared").mkdir()
+            for index in (1, 2):
+                self._write_image(sequence / "visible" / f"{index:04d}.png", 10 + index)
+                self._write_image(sequence / "infrared" / f"{index:04d}.png", 20 + index)
+            visible_bytes = b"0,0,4,4\r\n0,0,4,4\r\n\r\n"
+            (sequence / "visible.txt").write_bytes(visible_bytes)
+            (sequence / "infrared.txt").write_bytes(b"0,0,4,4\r\n0,0,4,4\r\n")
+            manifest = load_sequence_manifest(root, "seq", "RGBT234")
+            self.assertEqual(manifest.frame_count, 2)
+            self.assertEqual(manifest.visible_annotation.size_bytes, len(visible_bytes))
+            self.assertEqual(
+                manifest.visible_annotation.sha256,
+                __import__("hashlib").sha256(visible_bytes).hexdigest(),
+            )
+
+            (sequence / "visible.txt").write_bytes(b"0,0,4,4\r\n\r\n0,0,4,4\r\n")
+            with self.assertRaisesRegex(ValueError, "blank annotation row"):
+                load_sequence_manifest(root, "seq", "RGBT234")
+
+    @unittest.skipUnless(HAS_OPENCV, "OpenCV is required for dataset decoding")
     def test_dataset_loader_rejects_silent_length_mismatch(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

@@ -209,6 +209,8 @@ def _annotation_entry(path: Path, sequence_root: Path, polygon: bool) -> Annotat
     except UnicodeDecodeError as exc:
         raise ValueError(f"annotation file is not UTF-8: {path}") from exc
     lines = text.splitlines()
+    while lines and not lines[-1].strip():
+        lines.pop()
     if not lines:
         raise ValueError(f"annotation file is empty: {path}")
     boxes = tuple(_parse_annotation_row(line, index, path, polygon) for index, line in enumerate(lines, 1))
